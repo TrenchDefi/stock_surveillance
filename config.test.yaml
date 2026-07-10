@@ -1,0 +1,70 @@
+run:
+  timezone: America/New_York
+  state_dir: ./state
+  output_dir: ./reports
+  log_dir: ./logs
+fmp:
+  base_url: https://financialmodelingprep.com/stable
+  request_delay_seconds: 0.35
+  price_history_days: 400
+edgar:
+  user_agent: Linden Thomas Surveillance internal tool <${EDGAR_CONTACT_EMAIL}>
+  max_requests_per_second: 10
+  forms:
+  - 8-K
+  - 10-Q
+  - 10-K
+  - 6-K
+thresholds:
+  eps_surprise_pct: 15
+  eps_estimate_floor_usd: 0.05
+  eps_surprise_abs_usd: 0.05
+  revenue_surprise_pct: 5
+  move_1d_pct: 0.5
+  move_1w_pct: 1
+  move_1m_pct: 2
+  relative_move_flag_pct: 60
+alerts:
+  high_low_cooldown_days: 10
+guidance_keywords:
+- guidance
+- outlook
+- raises
+- lowers
+- reaffirms
+- withdraws
+- full-year
+- full year
+- fiscal 2025
+- fiscal 2026
+- fiscal 2027
+- updates its
+- revises
+investigation:
+  max_triggers_per_night: 10
+  max_turns: 40
+  news_days: 7
+  news_max_items: 15
+email:
+  enabled: false
+watchlist:
+- ticker: AAPL
+  name: Apple Inc.
+  cik: 0000320193
+  benchmark_etf: XLK
+- ticker: MSFT
+  name: Microsoft Corporation
+  cik: 0000789019
+  benchmark_etf: XLK
+- ticker: JPM
+  name: JPMorgan Chase & Co.
+  cik: 0000019617
+  benchmark_etf: XLF
+- ticker: XOM
+  name: Exxon Mobil Corporation
+  cik: 0000034088
+  benchmark_etf: XLE
+- ticker: UNH
+  name: UnitedHealth Group
+  cik: '0000731766'
+  benchmark_etf: XLV

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surveillance Digest — {{ run_date }}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap');
+:root {
+  --navy: #1F2D4A;
+  --gold: #B79B47;
+  --cream: #F7F4EA;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Source Sans 3', 'Helvetica Neue', Arial, sans-serif;
+  color: var(--navy);
+  background: #fff;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 3rem;
+  line-height: 1.55;
+}
+h1, h2, h3 { font-family: 'EB Garamond', Georgia, 'Times New Roman', serif; color: var(--navy); }
+h1 { font-size: 2rem; font-weight: 700; }
+h2 { font-size: 1.4rem; font-weight: 600; margin: 2.2rem 0 0.9rem; border-bottom: 2px solid var(--gold); padding-bottom: 0.3rem; }
+h3 { font-size: 1.15rem; font-weight: 600; }
+.masthead { border-bottom: 3px solid var(--navy); padding-bottom: 1rem; margin-bottom: 1.2rem; }
+.masthead .eyebrow { margin-bottom: 0.4rem; }
+.eyebrow {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; font-variant: small-caps; color: var(--gold);
+}
+.rundate { color: #5a6276; font-size: 0.95rem; }
+.allquiet {
+  background: var(--cream); border-top: 3px solid var(--gold);
+  padding: 1.4rem 1.6rem; margin-top: 1.5rem; font-size: 1.05rem;
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th {
+  text-align: left; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+  font-variant: small-caps; color: var(--navy); border-bottom: 2px solid var(--navy);
+  padding: 0.4rem 0.6rem;
+}
+td { padding: 0.45rem 0.6rem; border-bottom: 1px solid #e4dfd0; vertical-align: top; }
+td.tick { font-weight: 700; }
+.card {
+  background: var(--cream); border-top: 3px solid var(--gold);
+  padding: 1.2rem 1.5rem 1.1rem; margin: 1.1rem 0;
+}
+.card .eyebrow { margin-bottom: 0.35rem; }
+.card h3 { margin-bottom: 0.5rem; }
+.card .facts { font-size: 0.95rem; margin-bottom: 0.7rem; }
+.card ul { list-style: none; margin: 0.5rem 0 0.2rem; }
+.card li { padding: 0.18rem 0 0.18rem 0.9rem; border-left: 3px solid var(--gold); margin: 0.35rem 0; }
+.confidence { font-size: 0.8rem; color: #5a6276; }
+.sources { font-size: 0.85rem; margin-top: 0.6rem; }
+.sources a { color: var(--navy); text-decoration-color: var(--gold); }
+.unknown { font-style: italic; }
+ul.plain { list-style: none; }
+ul.plain li { padding: 0.18rem 0 0.18rem 0.9rem; border-left: 3px solid var(--gold); margin: 0.35rem 0; }
+.issues li { border-left-color: #a33; }
+footer {
+  margin-top: 3rem; padding-top: 1rem; border-top: 3px solid var(--navy);
+  font-size: 0.8rem; color: #5a6276; font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="masthead">
+  <div class="eyebrow">Internal Surveillance</div>
+  <h1>Nightly Digest</h1>
+  <div class="rundate">Run {{ run_date }} · as of trading day {{ as_of }} · {{ tickers_scanned }} tickers scanned</div>
+</div>
+
+{% if scan_failed %}
+<div class="allquiet"><strong>Scan did not complete.</strong> No triggers file was produced for {{ run_date }} — check logs/scan.log.</div>
+{% elif not triggers %}
+<div class="allquiet"><strong>All quiet</strong> — {{ tickers_scanned }} tickers scanned, no triggers.</div>
+{% else %}
+
+<h2>Trigger Summary</h2>
+<table>
+  <thead><tr><th>Ticker</th><th>Trigger</th><th>Facts</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for row in summary_rows %}
+    <tr>
+      <td class="tick">{{ row.ticker }}</td>
+      <td>{{ row.label }}</td>
+      <td>{{ row.facts }}</td>
+      <td>{{ row.status }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% if cards %}
+<h2>Investigated Triggers</h2>
+{% for card in cards %}
+<div class="card">
+  <div class="eyebrow">{{ card.eyebrow }}</div>
+  <h3>{{ card.ticker }} — {{ card.name }}</h3>
+  <div class="facts">{{ card.facts }}</div>
+  {% if card.guidance %}<div class="facts"><strong>Guidance: {{ card.guidance }}</strong></div>{% endif %}
+  {% if card.cause_unknown %}
+  <p class="unknown">No cause identified in available sources.</p>
+  {% endif %}
+  <p>{{ card.hypothesis }} <span class="confidence">(confidence: {{ card.confidence }})</span></p>
+  {% if card.sources %}
+  <div class="sources"><ul>
+    {% for s in card.sources %}
+    <li>{% if s.url %}<a href="{{ s.url }}">{{ s.title }}</a>{% else %}{{ s.title }}{% endif %}{% if s.date %} · {{ s.date }}{% endif %}</li>
+    {% endfor %}
+  </ul></div>
+  {% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if uninvestigated %}
+<h2>Triggered, Not Investigated</h2>
+<ul class="plain">
+  {% for row in uninvestigated %}
+  <li><strong>{{ row.ticker }}</strong> — {{ row.label }}: {{ row.facts }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if reaffirmed %}
+<h2>Guidance Reaffirmed</h2>
+<ul class="plain">
+  {% for r in reaffirmed %}
+  <li><strong>{{ r.ticker }}</strong> reaffirmed guidance{% if r.detail %} — {{ r.detail }}{% endif %}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+
+{% if data_issues %}
+<h2>Data Issues</h2>
+<ul class="plain issues">
+  {% for issue in data_issues %}
+  <li><strong>{{ issue.ticker }}</strong> ({{ issue.source }}): {{ issue.error }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<footer>Internal surveillance output — for internal review only. Not for client distribution without compliance review.</footer>
+</body>
+</html>

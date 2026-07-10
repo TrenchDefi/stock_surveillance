@@ -1,0 +1,61 @@
+# Nightly Surveillance Digest — {{ run_date }}
+
+Run {{ run_date }} · as of trading day {{ as_of }} · {{ tickers_scanned }} tickers scanned
+
+{% if scan_failed -%}
+**Scan did not complete.** No triggers file was produced for {{ run_date }} — check logs/scan.log.
+{% elif not triggers -%}
+**All quiet** — {{ tickers_scanned }} tickers scanned, no triggers.
+{% else -%}
+## Trigger Summary
+
+| Ticker | Trigger | Facts | Status |
+|--------|---------|-------|--------|
+{% for row in summary_rows -%}
+| {{ row.ticker }} | {{ row.label }} | {{ row.facts }} | {{ row.status }} |
+{% endfor %}
+{% if cards %}
+## Investigated Triggers
+{% for card in cards %}
+### {{ card.ticker }} — {{ card.name }}
+
+*{{ card.eyebrow }}*
+
+{{ card.facts }}
+{% if card.guidance %}
+**Guidance: {{ card.guidance }}**
+{% endif %}
+{%- if card.cause_unknown %}
+*No cause identified in available sources.*
+{% endif %}
+{{ card.hypothesis }} *(confidence: {{ card.confidence }})*
+{% if card.sources %}
+Sources:
+{% for s in card.sources -%}
+- {% if s.url %}[{{ s.title }}]({{ s.url }}){% else %}{{ s.title }}{% endif %}{% if s.date %} · {{ s.date }}{% endif %}
+{% endfor %}
+{%- endif %}
+{% endfor %}
+{%- endif %}
+{% if uninvestigated %}
+## Triggered, Not Investigated
+{% for row in uninvestigated %}
+- **{{ row.ticker }}** — {{ row.label }}: {{ row.facts }}
+{%- endfor %}
+{% endif %}
+{% if reaffirmed %}
+## Guidance Reaffirmed
+{% for r in reaffirmed %}
+- **{{ r.ticker }}** reaffirmed guidance{% if r.detail %} — {{ r.detail }}{% endif %}
+{%- endfor %}
+{% endif %}
+{%- endif %}
+{% if data_issues %}
+## Data Issues
+{% for issue in data_issues %}
+- **{{ issue.ticker }}** ({{ issue.source }}): {{ issue.error }}
+{%- endfor %}
+{% endif %}
+
+---
+*Internal surveillance output — for internal review only. Not for client distribution without compliance review.*
